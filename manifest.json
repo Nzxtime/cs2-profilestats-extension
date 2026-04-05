@@ -25,8 +25,9 @@
     }
   ],
   "background": {
-    "service_worker": "background.js",
-    "scripts": ["background.js"]
+    "service_worker": "background.js"
+    // uncomment line below and add , above for firefox
+    // "scripts": ["background.js"]
   },
   "permissions": ["storage"]
 }
