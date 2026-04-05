@@ -1,0 +1,22 @@
+{
+  "name": "CS2 Profile Stats",
+  "description": "View CS2 statistics of a user directly in their profile.",
+  "version": "0.0.1",
+  "manifest_version": 3,
+  "content_scripts": [
+    {
+      "js": ["content.js"],
+      "matches": [
+        "https://steamcommunity.com/profiles/*",
+        "https://steamcommunity.com/id/*"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*.png"],
+      "matches": ["https://steamcommunity.com/*"]
+    }
+  ],
+  "permissions": ["storage"]
+}
