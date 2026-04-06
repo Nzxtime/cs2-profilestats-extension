@@ -352,6 +352,11 @@ async function setupSettings(el) {
 async function renderStats(el, head) {
   if (!el) return;
 
+
+  const path = window.location.pathname;
+  const profilePage = path.match(/^\/(profiles|id)\/[^\/]+\/?$/);
+  if (!profilePage) return;
+
   const steamId64 = await getSteamId(window.location.href);
   if (!steamId64) return;
 
