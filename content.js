@@ -206,12 +206,22 @@ function fillSteam(clone, steamData, steamId64, isGamesPrivate) {
   clone.querySelector("#profilestats-steam_category_logo_name").href = `https://steamcommunity.com/profiles/${steamId64}`;
   clone.querySelector("#profilestats-steam_steamid64").textContent = steamId64;
 
-  const { years, months } = howLongAgo(steamData["registered"]);
-  clone.querySelector("#profilestats-steam_registered").textContent = `${years}y, ${months}m ago`;
+  const registered = steamData["registered"]
+  if (registered != null) {
+    const { years, months } = howLongAgo(registered);
+    clone.querySelector("#profilestats-steam_registered").textContent = `${years}y, ${months}m ago`;
+  } else {
+    clone.querySelector("#profilestats-steam_registered").textContent = "-";
+  }
+
 
   const playtime = steamData["cs2_playtime"];
-  const formattedPlaytime = new Intl.NumberFormat("en-US").format(playtime);
-  clone.querySelector("#profilestats-steam_cs2_playtime").textContent = isGamesPrivate ? "Private" : `${formattedPlaytime}h`;
+  if (playtime != null) {
+    const formattedPlaytime = new Intl.NumberFormat("en-US").format(playtime);
+    clone.querySelector("#profilestats-steam_cs2_playtime").textContent = `${formattedPlaytime}h`;
+  } else {
+    clone.querySelector("#profilestats-steam_cs2_playtime").textContent = `${isGamesPrivate ? "Private" : "-"}`;
+  }
 }
 
 function fillLeetify(clone, leetifyData, steamId64) {
@@ -225,29 +235,38 @@ function fillLeetify(clone, leetifyData, steamId64) {
   const formattedRating = new Intl.NumberFormat("en-US").format(premierRating);
 
   clone.querySelector("#profilestats-leetify_category_logo_name").href = `https://leetify.com/app/profile/${steamId64}`;
-  clone.querySelector("#profilestats-leetify_name").textContent = leetifyData["name"];
-  clone.querySelector("#profilestats-leetify_premier_rating").textContent = `[${premierRating !== 0 ? formattedRating : "---"}]`;
-  clone.querySelector("#profilestats-leetify_leetify_rating").textContent = stats["leetify_rating"];
-  clone.querySelector("#profilestats-leetify_matches").textContent = stats["matches"];
+  clone.querySelector("#profilestats-leetify_name").textContent = `${leetifyData["name"] ?? "-"}`;
+  clone.querySelector("#profilestats-leetify_premier_rating").textContent = `[${premierRating == null || premierRating === 0 ? "---" : formattedRating}]`
+  clone.querySelector("#profilestats-leetify_leetify_rating").textContent = `${stats["leetify_rating"] ?? "-"}`;
+  clone.querySelector("#profilestats-leetify_matches").textContent = `${stats["matches"] ?? "-"}`;
 
-  const { years, months } = howLongAgo(stats["first_match"]);
-  clone.querySelector("#profilestats-leetify_first_match").textContent = `${years}y, ${months}m ago`;
+  const firstMatch = stats["first_match"]
+  if (firstMatch != null) {
+    const { years, months } = howLongAgo(firstMatch);
+    clone.querySelector("#profilestats-leetify_first_match").textContent = `${years}y, ${months}m ago`;
+  } else {
+    clone.querySelector("#profilestats-leetify_first_match").textContent = "";
+  }
 
-  clone.querySelector("#profilestats-leetify_win_rate").textContent = `${stats["win_rate"]}%`;
-  clone.querySelector("#profilestats-leetify_aim_rating").textContent = stats["aim_rating"];
-  clone.querySelector("#profilestats-leetify_positioning").textContent = stats["positioning"];
-  clone.querySelector("#profilestats-leetify_utility").textContent = stats["utility"];
+
+  const winRate = stats["win_rate"]
+  clone.querySelector("#profilestats-leetify_win_rate").textContent = `${winRate == null ? "-" : winRate + "%"}`;
+  clone.querySelector("#profilestats-leetify_aim_rating").textContent = `${stats["aim_rating"] ?? "-"}`;
+  clone.querySelector("#profilestats-leetify_positioning").textContent = `${stats["positioning"] ?? "-"}`;
+  clone.querySelector("#profilestats-leetify_utility").textContent = `${stats["utility"] ?? "-"}`;
 
   const clutching = stats["clutching"];
-  clone.querySelector("#profilestats-leetify_clutching").textContent = clutching > 0 ? `+${clutching}` : clutching;
+  clone.querySelector("#profilestats-leetify_clutching").textContent = clutching == null ? "-" : (clutching > 0 ? `+${clutching}` : clutching);
 
   const opening = stats["opening"];
-  clone.querySelector("#profilestats-leetify_opening").textContent = opening > 0 ? `+${opening}` : opening;
+  clone.querySelector("#profilestats-leetify_opening").textContent = opening == null ? "-" : (opening > 0 ? `+${opening}` : opening);
 
-  clone.querySelector("#profilestats-leetify_preaim_angle").textContent = `${stats["preaim_angle"]}°`;
-  clone.querySelector("#profilestats-leetify_reaction_time").textContent = `${stats["reaction_time"]}ms`;
+  const preaim = stats["preaim_angle"]
+  const reaction = stats["reaction_time"]
+  clone.querySelector("#profilestats-leetify_preaim_angle").textContent = `${preaim == null ? "-" : preaim + "°"}`;
+  clone.querySelector("#profilestats-leetify_reaction_time").textContent = `${reaction == null ? "-" : reaction + "ms"}`;
 
-  return premierRating;
+  return premierRating ?? 0;
 }
 
 function fillFaceit(clone, faceitData) {
@@ -259,33 +278,53 @@ function fillFaceit(clone, faceitData) {
   const stats = faceitData["stats"];
   const faceitLevel = faceitData["level"];
   const ranking = faceitData["ranking"];
-  const displayLevel = ranking <= 1000 && ranking !== 0 ? `#${ranking}` : faceitLevel;
+  const displayLevel = ranking != null && ranking <= 1000 && ranking !== 0 ? `#${ranking}` : (faceitLevel ?? "?");
 
-  clone.querySelector("#profilestats-faceit_category_logo_name").href = `https://www.faceit.com/en/players/${faceitData["nickname"]}`;
+  const nickname = faceitData["nickname"];
+  clone.querySelector("#profilestats-faceit_category_logo_name").href = `https://www.faceit.com/en/players/${nickname ?? ""}`;
   clone.querySelector("#profilestats-faceit_level").textContent = displayLevel;
-  clone.querySelector("#profilestats-faceit_nickname").textContent = faceitData["nickname"];
-  clone.querySelector("#profilestats-faceit_flag").src = `https://flagsapi.com/${faceitData["country"].toUpperCase()}/flat/24.png`;
-  clone.querySelector("#profilestats-faceit_membership").textContent = faceitData["membership"];
+  clone.querySelector("#profilestats-faceit_nickname").textContent = faceitData["nickname"] ?? "-";
 
-  const { years, months } = howLongAgo(faceitData["registered"]);
-  clone.querySelector("#profilestats-faceit_registered").textContent = `${years}y, ${months}m ago`;
+  const country = faceitData["country"];
+  clone.querySelector("#profilestats-faceit_flag").src = country ? `https://flagsapi.com/${country.toUpperCase()}/flat/24.png` : "";
 
-  clone.querySelector("#profilestats-faceit_elo").textContent = faceitData["elo"];
-  clone.querySelector("#profilestats-faceit_matches").textContent = stats["matches"];
-  clone.querySelector("#profilestats-faceit_kd_ratio").textContent = stats["kd_ratio"];
-  clone.querySelector("#profilestats-faceit_hs_percentage").textContent = `${stats["hs_percentage"]}%`;
-  clone.querySelector("#profilestats-faceit_win_rate").textContent = `${stats["win_rate"]}%`;
-  clone.querySelector("#profilestats-faceit_avg_kills").textContent = stats["avg_kills"];
+  clone.querySelector("#profilestats-faceit_membership").textContent = faceitData["membership"] ?? "-";
+
+  const registered = faceitData["registered"];
+  if (registered != null) {
+    const { years, months } = howLongAgo(registered);
+    clone.querySelector("#profilestats-faceit_registered").textContent = `${years}y, ${months}m ago`;
+  } else {
+    clone.querySelector("#profilestats-faceit_registered").textContent = "-";
+  }
+
+  clone.querySelector("#profilestats-faceit_elo").textContent = faceitData["elo"] ?? "-";
+  clone.querySelector("#profilestats-faceit_matches").textContent = stats["matches"] ?? "-";
+  clone.querySelector("#profilestats-faceit_kd_ratio").textContent = stats["kd_ratio"] ?? "-";
+
+  const hs = stats["hs_percentage"];
+  clone.querySelector("#profilestats-faceit_hs_percentage").textContent = hs != null ? `${hs}%` : "-";
+
+  const winRate = stats["win_rate"];
+  clone.querySelector("#profilestats-faceit_win_rate").textContent = winRate != null ? `${winRate}%` : "-";
+
+  clone.querySelector("#profilestats-faceit_avg_kills").textContent = stats["avg_kills"] ?? "-";
+
 
   const recentContainer = clone.querySelector("#profilestats-faceit_recent_results");
-  stats["recent_results"].forEach(result => {
-    const span = document.createElement("span");
-    span.textContent = result;
-    span.style.color = result === "W" ? "#86fc8c" : "#ff879b";
-    recentContainer.appendChild(span);
-  });
+  const recentResults = stats["recent_results"];
+  if (recentResults?.length > 0) {
+    recentResults.forEach(result => {
+      const span = document.createElement("span");
+      span.textContent = result;
+      span.style.color = result === "W" ? "#86fc8c" : "#ff879b";
+      recentContainer.appendChild(span);
+    });
+  } else {
+    recentContainer.textContent = "-";
+  }
 
-  return faceitLevel;
+  return faceitLevel ?? 0;
 }
 
 function createStyles(premierRating, faceitLevel) {
