@@ -4,7 +4,7 @@ Extension that allows to check cs2 player's statistics right from their steam pr
 ## Installation
 
 ### Firefox
-soon
+https://addons.mozilla.org/en-US/firefox/addon/cs2-profile-stats
 
 ### Chrome
 https://chromewebstore.google.com/detail/cs2-profile-stats/cdjdnohbfomlobiemcceejdnobfgnpje
