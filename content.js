@@ -304,7 +304,7 @@ function fillCSStats(clone, csStatsData, steamId64) {
   if (!csStatsData || csStatsData.error) {
     clone.querySelector("#profilestats-csstats_content").textContent =
       csStatsData?.error === "private profile" ? "Profile is private" : "Couldn't load CSStats data";
-    return;
+    return 0;
   }
 
   const stats = csStatsData["stats"];
