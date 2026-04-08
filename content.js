@@ -281,21 +281,21 @@ function fillLeetify(clone, leetifyData, steamId64) {
 
 
   const winRate = stats["win_rate"]
-  clone.querySelector("#profilestats-leetify_win_rate").textContent = `${winRate == null ? "-" : winRate + "%"}`;
+  clone.querySelector("#profilestats-leetify_win_rate").textContent = winRate != null ? `${winRate}%` : "-";
   clone.querySelector("#profilestats-leetify_aim_rating").textContent = `${stats["aim_rating"] ?? "-"}`;
   clone.querySelector("#profilestats-leetify_positioning").textContent = `${stats["positioning"] ?? "-"}`;
   clone.querySelector("#profilestats-leetify_utility").textContent = `${stats["utility"] ?? "-"}`;
 
   const clutching = stats["clutching"];
-  clone.querySelector("#profilestats-leetify_clutching").textContent = clutching == null ? "-" : (clutching > 0 ? `+${clutching}` : clutching);
+  clone.querySelector("#profilestats-leetify_clutching").textContent = clutching != null ? (clutching > 0 ? `+${clutching}` : clutching) : "-";
 
   const opening = stats["opening"];
-  clone.querySelector("#profilestats-leetify_opening").textContent = opening == null ? "-" : (opening > 0 ? `+${opening}` : opening);
+  clone.querySelector("#profilestats-leetify_opening").textContent = opening != null ? (opening > 0 ? `+${opening}` : opening) : "-";
 
-  const preaim = stats["preaim_angle"]
-  const reaction = stats["reaction_time"]
-  clone.querySelector("#profilestats-leetify_preaim_angle").textContent = `${preaim == null ? "-" : preaim + "°"}`;
-  clone.querySelector("#profilestats-leetify_reaction_time").textContent = `${reaction == null ? "-" : reaction + "ms"}`;
+  const preaim = stats["preaim_angle"];
+  const reaction = stats["reaction_time"];
+  clone.querySelector("#profilestats-leetify_preaim_angle").textContent = preaim != null ? `${preaim}°` : "-";
+  clone.querySelector("#profilestats-leetify_reaction_time").textContent = reaction != null ? `${reaction}ms` : "-";
 
   return premierRating ?? 0;
 }
