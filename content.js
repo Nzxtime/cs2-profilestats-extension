@@ -466,15 +466,8 @@ async function renderStats(el, head) {
   const steamId64 = await getSteamId(window.location.href);
   if (!steamId64) return;
 
-  // we do fetching twice because we want the whole thing to not show up if the api is down
-  // caching would prevent us from fetching twice anyway, this just acts as a guard or whatever
-  // idk any other solution for that rn, maybe need a status endpoint for the api
-  const [faceitData, leetifyData, steamData] = await Promise.all([
-    fetchFaceitProfile(steamId64),
-    fetchLeetifyProfile(steamId64),
-    fetchSteamProfile(steamId64)
-  ]);
-  if (!faceitData && !leetifyData && !steamData) return;
+  const status = await backgroundFetch(`${API_URL}/api/status`);
+  if (!status || status.error) return;
 
   const images = {
     steamLogo:   chrome.runtime.getURL("assets/steam_logo.png"),
