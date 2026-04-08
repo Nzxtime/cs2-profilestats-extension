@@ -163,7 +163,7 @@ function createTemplate(images) {
             </div>
           </div>
         </div>
-        <div class="showcase_content_bg profilestats-csstats">
+        <!--<div class="showcase_content_bg profilestats-csstats">
           <div class="profilestats-header">
             <a class="profilestats-category_logo_name" id="profilestats-csstats_category_logo_name">
               <div class="profilestats-category_name" id="profilestats-csstats_category_name">CS<span>STATS</span>.GG</div>
@@ -187,7 +187,7 @@ function createTemplate(images) {
               <div>Most played<span id="profilestats-csstats_most_played"></span></div>
             </div>
           </div>
-        </div>
+        </div>-->
         <div class="showcase_content_bg profilestats-faceit">
           <div class="profilestats-header">
             <a class="profilestats-category_logo_name" id="profilestats-faceit_category_logo_name">
@@ -481,7 +481,7 @@ async function renderStats(el, head) {
 
   const steamBackup = clone.querySelector("#profilestats-steam_content").innerHTML;
   const leetifyBackup = clone.querySelector("#profilestats-leetify_content").innerHTML;
-  const csStatsBackup = clone.querySelector("#profilestats-csstats_content").innerHTML;
+  // const csStatsBackup = clone.querySelector("#profilestats-csstats_content").innerHTML;
   const faceitBackup = clone.querySelector("#profilestats-faceit_content").innerHTML;
 
   const loadingAnimation = `
@@ -496,7 +496,7 @@ async function renderStats(el, head) {
 
   clone.querySelector("#profilestats-steam_content").innerHTML = loadingAnimation;
   clone.querySelector("#profilestats-leetify_content").innerHTML = loadingAnimation;
-  clone.querySelector("#profilestats-csstats_content").innerHTML = loadingAnimation;
+  // clone.querySelector("#profilestats-csstats_content").innerHTML = loadingAnimation;
   clone.querySelector("#profilestats-faceit_content").innerHTML = loadingAnimation;
 
   const styleEl = document.createElement("style");
@@ -523,12 +523,12 @@ async function renderStats(el, head) {
     styleEl.textContent = createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel);
   });
 
-  fetchCSStatsProfile(steamId64).then(csStatsData => {
-    const content = el.querySelector("#profilestats-csstats_content");
-    content.innerHTML = csStatsBackup;
-    csStatsPremierRating = fillCSStats(el, csStatsData, steamId64);
-    styleEl.textContent = createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel);
-  });
+  // fetchCSStatsProfile(steamId64).then(csStatsData => {
+  //   const content = el.querySelector("#profilestats-csstats_content");
+  //   content.innerHTML = csStatsBackup;
+  //   csStatsPremierRating = fillCSStats(el, csStatsData, steamId64);
+  //   styleEl.textContent = createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel);
+  // });
 
   fetchFaceitProfile(steamId64).then(faceitData => {
     const content = el.querySelector("#profilestats-faceit_content");
