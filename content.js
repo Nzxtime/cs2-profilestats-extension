@@ -46,6 +46,12 @@ async function fetchLeetifyProfile(steamId64) {
   );
 }
 
+async function fetchCSStatsProfile(steamId64) {
+  return cachedFetch(`csstats:${steamId64}`, () =>
+    backgroundFetch(`${API_URL}/api/stats/csstats/${steamId64}`)
+  );
+}
+
 async function fetchSteamProfile(steamId64) {
   return cachedFetch(`steam:${steamId64}`, () =>
     backgroundFetch(`${API_URL}/api/stats/steam/${steamId64}`)
@@ -154,6 +160,31 @@ function createTemplate(images) {
               <div>Opening<span id="profilestats-leetify_opening"></span></div>
               <div>Preaim&#176;<span id="profilestats-leetify_preaim_angle"></span></div>
               <div>Reaction<span id="profilestats-leetify_reaction_time"></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="showcase_content_bg profilestats-csstats">
+          <div class="profilestats-header">
+            <a class="profilestats-category_logo_name" id="profilestats-csstats_category_logo_name">
+              <div class="profilestats-category_name" id="profilestats-csstats_category_name">CS<span>STATS</span>.GG</div>
+            </a>
+          </div>
+          <div id="profilestats-csstats_content">
+            <div id="profilestats-csstats_profile">
+              <div id="profilestats-csstats_profile_header">
+                <span id="profilestats-csstats_premier_rating"></span>
+                <div><span id="profilestats-csstats_name"></span></div>
+              </div>
+            </div>
+            <div class="profilestats-details">
+              <div>K/D<span id="profilestats-csstats_kd_ratio"></span></div>
+              <div>HLTV Rating<span id="profilestats-csstats_hltv"></span></div>
+              <div>Matches<span id="profilestats-csstats_matches"></span></div>
+              <div>Winrate<span id="profilestats-csstats_win_rate"></span></div>
+              <div>HS%<span id="profilestats-csstats_hs_percentage"></span></div>
+              <div>ADR<span id="profilestats-csstats_adr"></span></div>
+              <div>Clutching<span id="profilestats-csstats_clutching"></span></div>
+              <div>Most played<span id="profilestats-csstats_most_played"></span></div>
             </div>
           </div>
         </div>
@@ -269,6 +300,42 @@ function fillLeetify(clone, leetifyData, steamId64) {
   return premierRating ?? 0;
 }
 
+function fillCSStats(clone, csStatsData, steamId64) {
+  if (!csStatsData || csStatsData.error) {
+    clone.querySelector("#profilestats-csstats_content").textContent =
+      csStatsData?.error === "private profile" ? "Profile is private" : "Couldn't load CSStats data";
+    return;
+  }
+
+  const stats = csStatsData["stats"];
+  const latestPremier = stats["premier_ratings"]?.[0];
+  const premierRating = latestPremier?.["latest_rating"] ?? 0
+  const formattedRating = new Intl.NumberFormat("en-US").format(premierRating);
+
+  clone.querySelector("#profilestats-csstats_category_logo_name").href = `https://csstats.gg/player/${steamId64 ?? "-"}`;
+  clone.querySelector("#profilestats-csstats_name").textContent = csStatsData["name"];
+  clone.querySelector("#profilestats-csstats_premier_rating").textContent = `[${premierRating == null || premierRating === 0 ? "---" : formattedRating}]`
+
+  clone.querySelector("#profilestats-csstats_kd_ratio").textContent = stats["kd_ratio"] ?? "-"
+  clone.querySelector("#profilestats-csstats_hltv").textContent = stats["hltv_rating"] ?? "-"
+  clone.querySelector("#profilestats-csstats_matches").textContent = stats["matches"] ?? "-"
+
+  const winRate = stats["win_rate"]
+  clone.querySelector("#profilestats-csstats_win_rate").textContent = `${winRate ? winRate + "%" : "-"}`
+
+  const hsPercentage = stats["hs_percentage"]
+  clone.querySelector("#profilestats-csstats_hs_percentage").textContent = `${hsPercentage ? hsPercentage : "-"}`
+
+  clone.querySelector("#profilestats-csstats_adr").textContent = stats["adr"] ?? "-"
+
+  const clutching = stats["clutch"]
+  clone.querySelector("#profilestats-csstats_clutching").textContent = `${clutching ? clutching + "%" : "-"}`
+
+  clone.querySelector("#profilestats-csstats_most_played").textContent = stats["most_played_map"] ?? "-"
+
+  return premierRating ?? 0;
+}
+
 function fillFaceit(clone, faceitData) {
   if (!faceitData || faceitData.error) {
     clone.querySelector("#profilestats-faceit_content").textContent = faceitData?.status === 404 ? "No FaceIt profile" : (faceitData?.error ?? "Couldn't load FaceIt data");
@@ -281,7 +348,7 @@ function fillFaceit(clone, faceitData) {
   const displayLevel = ranking != null && ranking <= 1000 && ranking !== 0 ? `#${ranking}` : (faceitLevel ?? "?");
 
   const nickname = faceitData["nickname"];
-  clone.querySelector("#profilestats-faceit_category_logo_name").href = `https://www.faceit.com/en/players/${nickname ?? ""}`;
+  clone.querySelector("#profilestats-faceit_category_logo_name").href = `https://www.faceit.com/en/players/${nickname ?? "-"}`;
   clone.querySelector("#profilestats-faceit_level").textContent = displayLevel;
   clone.querySelector("#profilestats-faceit_nickname").textContent = faceitData["nickname"] ?? "-";
 
@@ -327,8 +394,9 @@ function fillFaceit(clone, faceitData) {
   return faceitLevel ?? 0;
 }
 
-function createStyles(premierRating, faceitLevel) {
-  const premierColor = getPremierColor(premierRating);
+function createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel) {
+  const leetifyPremierColor = getPremierColor(leetifyPremierRating);
+  const csStatsPremierColor = getPremierColor(csStatsPremierRating);
   const faceitColor = getFaceitColor(faceitLevel);
   return `
     .profilestats-customization_header { display: flex; flex-direction: row; justify-content: space-between; }
@@ -346,7 +414,11 @@ function createStyles(premierRating, faceitLevel) {
     #profilestats-steam_profile > div > span { color: #c4c4c4; font-size: 15px }
     #profilestats-leetify_profile_header { display: flex; flex-direction: row; gap: 10px }
     #profilestats-leetify_name { color: white; font-size: 20px; }
-    #profilestats-leetify_premier_rating { color: ${premierColor}; font-size: 20px; font-weight: 600; }
+    #profilestats-leetify_premier_rating { color: ${leetifyPremierColor}; font-size: 20px; font-weight: 600; }
+    #profilestats-csstats_category_name > span { color: #4a7dff}
+    #profilestats-csstats_profile_header { display: flex; flex-direction: row; gap: 10px }
+    #profilestats-csstats_name { color: white; font-size: 20px; }
+    #profilestats-csstats_premier_rating { color: ${csStatsPremierColor}; font-size: 20px; font-weight: 600; }
     .profilestats-details { margin-top: 10px; }
     #profilestats-faceit_profile_header { display: flex; flex-direction: row; align-items: center; gap: 5px }
     #profilestats-faceit_level { color: ${faceitColor}; font-weight: bold; font-size: 15px; border: 2px solid ${faceitColor}; border-radius: 50%; min-height: 30px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center }
@@ -416,6 +488,7 @@ async function renderStats(el, head) {
 
   const steamBackup = clone.querySelector("#profilestats-steam_content").innerHTML;
   const leetifyBackup = clone.querySelector("#profilestats-leetify_content").innerHTML;
+  const csStatsBackup = clone.querySelector("#profilestats-csstats_content").innerHTML;
   const faceitBackup = clone.querySelector("#profilestats-faceit_content").innerHTML;
 
   const loadingAnimation = `
@@ -430,17 +503,19 @@ async function renderStats(el, head) {
 
   clone.querySelector("#profilestats-steam_content").innerHTML = loadingAnimation;
   clone.querySelector("#profilestats-leetify_content").innerHTML = loadingAnimation;
+  clone.querySelector("#profilestats-csstats_content").innerHTML = loadingAnimation;
   clone.querySelector("#profilestats-faceit_content").innerHTML = loadingAnimation;
 
   const styleEl = document.createElement("style");
-  styleEl.textContent = createStyles(0, 0);
+  styleEl.textContent = createStyles(0, 0, 0);
   head.appendChild(styleEl);
 
   el.prepend(clone);
   await setupSettings(el);
 
-  let premierRating = 0;
+  let leetifyPremierRating = 0;
   let faceitLevel = 0;
+  let csStatsPremierRating = 0;
 
   fetchSteamProfile(steamId64).then(steamData => {
     const content = el.querySelector("#profilestats-steam_content");
@@ -451,15 +526,22 @@ async function renderStats(el, head) {
   fetchLeetifyProfile(steamId64).then(leetifyData => {
     const content = el.querySelector("#profilestats-leetify_content");
     content.innerHTML = leetifyBackup;
-    premierRating = fillLeetify(el, leetifyData, steamId64);
-    styleEl.textContent = createStyles(premierRating, faceitLevel);
+    leetifyPremierRating = fillLeetify(el, leetifyData, steamId64);
+    styleEl.textContent = createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel);
+  });
+
+  fetchCSStatsProfile(steamId64).then(csStatsData => {
+    const content = el.querySelector("#profilestats-csstats_content");
+    content.innerHTML = csStatsBackup;
+    csStatsPremierRating = fillCSStats(el, csStatsData, steamId64);
+    styleEl.textContent = createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel);
   });
 
   fetchFaceitProfile(steamId64).then(faceitData => {
     const content = el.querySelector("#profilestats-faceit_content");
     content.innerHTML = faceitBackup;
     faceitLevel = fillFaceit(el, faceitData);
-    styleEl.textContent = createStyles(premierRating, faceitLevel);
+    styleEl.textContent = createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel);
   });
 }
 
