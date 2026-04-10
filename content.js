@@ -35,8 +35,14 @@ async function resolveVanity(vanity) {
 }
 
 async function fetchFaceitProfile(steamId64) {
-  return cachedFetch(`faceit:${steamId64}`, () =>
-    backgroundFetch(`${API_URL}/api/stats/faceit/${steamId64}`)
+  return cachedFetch(`faceitcs2:${steamId64}`, () =>
+    backgroundFetch(`${API_URL}/api/stats/faceit/${steamId64}?game=cs2`)
+  );
+}
+
+async function fetchFaceitCsgoProfile(steamId64) {
+  return cachedFetch(`faceitcsgo:${steamId64}`, () =>
+    backgroundFetch(`${API_URL}/api/stats/faceit/${steamId64}?game=csgo`)
   );
 }
 
@@ -215,6 +221,10 @@ function createTemplate(images) {
               <img src="${faceitLogo}"/>
               <div class="profilestats-category_name">FaceIt</div>
             </a>
+            <div class="profilestats-tabs">
+              <button class="profilestats-tab active-tab" data-game="cs2">CS2</button>
+              <button class="profilestats-tab" data-game="csgo">CS:GO</button>
+            </div>
           </div>
           <div id="profilestats-faceit_content">
             <div id="profilestats-faceit_profile">
@@ -222,8 +232,9 @@ function createTemplate(images) {
                 <img id="profilestats-faceit_level"/>
                 <img id="profilestats-faceit_flag"/>
                 <span id="profilestats-faceit_nickname"></span>
-                <span style="font-size: 17px; font-weight: bold"> | </span>
+                <span class="profilestats-separator"> | </span>
                 <div style="font-size: 17px">Faceit <span id="profilestats-faceit_membership"></span></div>
+                <div class="profilestats-ban" id="profilestats-faceit_ban" style="display: none"><span class="profilestats-separator">|</span><span class="profilestats-ban_reason" id="profilestats-faceit_ban_reason"></span></div>
               </div>
             </div>
             <div class="profilestats-details">
@@ -382,6 +393,14 @@ function fillFaceit(clone, faceitData, faceitLevels) {
 
   clone.querySelector("#profilestats-faceit_membership").textContent = faceitData["membership"] ?? "-";
 
+  const banEl = clone.querySelector("#profilestats-faceit_ban");
+  if (faceitData["banned"]) {
+    banEl.style.display = "";
+    clone.querySelector("#profilestats-faceit_ban_reason").textContent = `Banned for ${faceitData["ban_reason"]?.toLowerCase() ?? "unknown"}`;
+  } else {
+    banEl.style.display = "none";
+  }
+
   const registered = faceitData["registered"];
   if (registered != null) {
     const { years, months } = howLongAgo(registered);
@@ -432,6 +451,11 @@ function createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel) {
     .profilestats-category_logo_name:hover { filter: brightness(0.8) }
     .profilestats-category_logo_name > img { height: 27px; }
     .profilestats-header > img { height: 40px; }
+    .profilestats-tab { background: none; border: none; color: white; cursor: pointer; }
+    .profilestats-tab.active-tab { border-bottom: 1px solid white; margin-bottom: -1px; }
+    .profilestats-separator { font-size: 17px; font-weight: bold; }
+    .profilestats-ban { display: flex; flex-direction: row; gap: 5px; }
+    .profilestats-ban_reason { font-size: 15px; color: red; }
     .profilestats-details { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     .profilestats-details > div { color: white; font-size: 17px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.3); border-radius: 3px; padding: 5px; height: fit-content; }
     .profilestats-details > div > span { color: #c4c4c4;font-size: 15px; }
@@ -581,12 +605,38 @@ async function renderStats(el, head) {
   //   styleEl.textContent = createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel);
   // });
 
-  fetchFaceitProfile(steamId64).then(faceitData => {
+  // faceit is a little more complicated since we have csgo and cs2 to handle
+  (async () => {
     const content = el.querySelector("#profilestats-faceit_content");
+
+    const [cs2Data, csgoData] = await Promise.all([
+      fetchFaceitProfile(steamId64),
+      fetchFaceitCsgoProfile(steamId64),
+    ]);
+
+    const csData = { cs2: cs2Data, csgo: csgoData };
+    const initialGame = (!cs2Data || cs2Data.error) ? "csgo" : "cs2";
+
     content.innerHTML = faceitBackup;
-    faceitLevel = fillFaceit(el, faceitData, faceitLevels);
+    faceitLevel = fillFaceit(el, csData[initialGame], faceitLevels);
     styleEl.textContent = createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel);
-  });
+
+    el.querySelectorAll(".profilestats-tab").forEach(btn => {
+      const game = btn.dataset.game;
+      const data = csData[game];
+
+      btn.style.display = (!data || data.error) ? "none" : "";
+      btn.classList.toggle("active-tab", game === initialGame);
+
+      btn.addEventListener("click", () => {
+        el.querySelectorAll(".profilestats-tab").forEach(t => t.classList.remove("active-tab"));
+        btn.classList.add("active-tab");
+        el.querySelector("#profilestats-faceit_recent_results").innerHTML = "";
+        faceitLevel = fillFaceit(el, csData[game], faceitLevels);
+        styleEl.textContent = createStyles(leetifyPremierRating, csStatsPremierRating, faceitLevel);
+      });
+    });
+  })();
 }
 
 renderStats(
