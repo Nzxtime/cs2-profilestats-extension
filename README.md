@@ -1,5 +1,5 @@
 # CS2 Profile Stats
-Extension that allows to check cs2 player's statistics right from their steam profile.
+Extension that allows to check CS2 player's statistics right from their steam profile.
 
 ## Installation
 
@@ -17,7 +17,7 @@ https://chromewebstore.google.com/detail/cs2-profile-stats/cdjdnohbfomlobiemccee
 - Click `Add to Chrome`, you will be prompted to save the extension file.
 - Save the file and the extension is now installed.
 
-#### MIllennium
+#### Millennium
 - Install [Millennium](https://docs.steambrew.app/users/getting-started/installation).
 - Install [Extendium](https://steambrew.app/plugin?id=788ed8554492) plugin.
 - Open Extendium, click `Install extension`, enter `https://chromewebstore.google.com/detail/cs2-profile-stats/cdjdnohbfomlobiemcceejdnobfgnpje` and click `Install`.
